@@ -1,0 +1,26 @@
+{
+    "version": 2,
+    "defects": {
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSToSingleNumber": 8,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSToMultipleNumbers": 8,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSWithShortNumberLength": 8,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSWithCustomMessagePriority": 8,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSWithInvalidCredentials": 8,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\utils\\ValidatorTest::testValidateCredentialsWithApiKey": 8
+    },
+    "times": {
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\utils\\NumberValidatorTest::testValidateNumbersWithValidNumbers": 0,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\utils\\NumberValidatorTest::testValidateNumbersWithInvalidNumbers": 0.001,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\utils\\NumberValidatorTest::testValidateNumbersWithMixedNumbers": 0,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\utils\\NumberValidatorTest::testValidateNumbersWithEmptyArray": 0,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\utils\\NumberValidatorTest::testValidateNumbersWithDuplicateNumbers": 0,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\utils\\NumberValidatorTest::testValidateNumbersWithDifferentFormats": 0,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\utils\\ValidatorTest::testValidateCredentialsWithApiKey": 0.026,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSToSingleNumber": 0.665,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSToMultipleNumbers": 0.651,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSWithShortNumberLength": 0.002,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSWithCustomMessagePriority": 0.584,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testSendSMSWithInvalidCredentials": 0.842,
+        "PahappaLimited\\EgoSmsSdk\\Tests\\v1\\EgoSmsSDKTest::testCheckBalanceAfterSendingSMS": 1.867
+    }
+}
