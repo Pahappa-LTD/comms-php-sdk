@@ -1,19 +1,19 @@
 <?php
 
-namespace PahappaLimited\EgoSmsSdk\Tests\v1;
+namespace PahappaLimited\CommsSDK\Tests\v1;
 
-use PahappaLimited\EgoSmsSdk\v1\EgoSmsSDK;
-use PahappaLimited\EgoSmsSdk\v1\models\MessagePriority;
+use PahappaLimited\CommsSDK\v1\CommsSDK;
+use PahappaLimited\CommsSDK\v1\models\MessagePriority;
 use PHPUnit\Framework\TestCase;
 
-class EgoSmsSDKTest extends TestCase
+class CommsSDKTest extends TestCase
 {
     private $sdk;
 
     protected function setUp(): void
     {
-        EgoSmsSDK::useSandBox();
-        $this->sdk = EgoSmsSDK::authenticate('aganisandbox', 'SandBox');
+        CommsSDK::useSandBox();
+        $this->sdk = CommsSDK::authenticate('agabu-idaniel', 'dcfa634d7936ec699a3b26f6cd924801b09b285a31949f99');
     }
 
     public function testSendSMSToSingleNumber()
@@ -39,7 +39,7 @@ class EgoSmsSDKTest extends TestCase
 
     public function testSendSMSWithInvalidCredentials()
     {
-        $sdk = EgoSmsSDK::authenticate('invalid_user', 'invalid_password');
+        $sdk = CommsSDK::authenticate('invalid_user', 'invalid_password');
         $this->assertFalse($sdk->sendSMS('+256772123456', 'Test message'));
     }
 

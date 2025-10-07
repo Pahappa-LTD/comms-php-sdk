@@ -1,6 +1,6 @@
 <?php
 
-namespace PahappaLimited\EgoSmsSdk\v1\utils;
+namespace PahappaLimited\CommsSDK\v1\utils;
 
 class NumberValidator {
     private static $regex = '/^\\+?(0|\\d{3})\\d{9}$/';

@@ -1,28 +1,28 @@
 <?php
 
-namespace PahappaLimited\EgoSmsSdk\v1\models;
+namespace PahappaLimited\CommsSDK\v1\models;
 
 class UserData {
     private string $username;
-    private string $password;
+    private string $apikey;
 
-    public function __construct($username, $password) {
+    public function __construct($username, $apikey) {
         $this->username = $username;
-        $this->password = $password;
+        $this->apikey = $apikey;
     }
 
     public function getUsername() {
         return $this->username;
     }
 
-    public function getPassword() {
-        return $this->password;
+    public function getApikey() {
+        return $this->apikey;
     }
 
     public function toArray() {
         return [
             'username' => $this->username,
-            'password' => $this->password,
+            'password' => $this->apikey,  // Maps to "password" in JSON
         ];
     }
 }

@@ -1,52 +1,66 @@
 <?php
 
-namespace PahappaLimited\EgoSmsSdk\v1\models;
+namespace PahappaLimited\CommsSDK\v1\models;
 
 class ApiResponse {
-    /**@var ApiResponseCode */
     private string $status;
-    private string $message;
-    private string $cost;
-    private string $MsgFollowUpUniqueCode;
-    private string $balance;
+    private ?string $message;
+    private ?int $cost;
+    private ?string $currency;
+    private ?string $msgFollowUpUniqueCode;
+    private ?string $balance;
+
+    public function __construct($status, $message = null, $cost = null, $currency = null, $msgFollowUpUniqueCode = null, $balance = null) {
+        $this->status = $status;
+        $this->message = $message;
+        $this->cost = $cost;
+        $this->currency = $currency;
+        $this->msgFollowUpUniqueCode = $msgFollowUpUniqueCode;
+        $this->balance = $balance;
+    }
+
+    public static function fromArray($data) {
+        return new self(
+            $data['Status'] ?? '',
+            $data['Message'] ?? null,
+            isset($data['Cost']) ? intval($data['Cost']) : null,
+            $data['Currency'] ?? null,
+            $data['MsgFollowUpUniqueCode'] ?? null,
+            $data['Balance'] ?? null
+        );
+    }
 
     public function getStatus() {
         return $this->status;
-    }
-
-    public function setStatus($status) {
-        $this->status = $status;
     }
 
     public function getMessage() {
         return $this->message;
     }
 
-    public function setMessage($message) {
-        $this->message = $message;
-    }
-
     public function getCost() {
         return $this->cost;
     }
 
-    public function setCost($cost) {
-        $this->cost = $cost;
+    public function getCurrency() {
+        return $this->currency;
     }
 
     public function getMsgFollowUpUniqueCode() {
-        return $this->MsgFollowUpUniqueCode;
-    }
-
-    public function setMsgFollowUpUniqueCode($MsgFollowUpUniqueCode) {
-        $this->MsgFollowUpUniqueCode = $MsgFollowUpUniqueCode;
+        return $this->msgFollowUpUniqueCode;
     }
 
     public function getBalance() {
         return $this->balance;
     }
 
-    public function setBalance($balance) {
-        $this->balance = $balance;
+    public function toArray() {
+        $result = ['Status' => $this->status];
+        if ($this->message !== null) $result['Message'] = $this->message;
+        if ($this->cost !== null) $result['Cost'] = $this->cost;
+        if ($this->currency !== null) $result['Currency'] = $this->currency;
+        if ($this->msgFollowUpUniqueCode !== null) $result['MsgFollowUpUniqueCode'] = $this->msgFollowUpUniqueCode;
+        if ($this->balance !== null) $result['Balance'] = $this->balance;
+        return $result;
     }
 }

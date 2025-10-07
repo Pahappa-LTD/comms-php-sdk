@@ -1,6 +1,6 @@
 {
-    "name": "pahappa-limited/egosms-sdk",
-    "description": "This is the PHP version of the EgoSms SDK - which will help PHP software to communicate with EgoSms bulk messaging servce by Pahappa Limited",
+    "name": "pahappa-limited/comms-sdk",
+    "description": "This is the PHP version of the Comms SDK - which will help PHP software to communicate with the Communications platform bulk messaging servce by Pahappa Limited",
     "type": "library",
     "require": {
         "guzzlehttp/guzzle": "^7.9"
@@ -8,7 +8,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "PahappaLimited\\EgoSmsSdk\\v1\\": "src/v1/"
+            "PahappaLimited\\CommsSDK\\v1\\": "src/v1/"
         }
     },
     "authors": [

@@ -1,8 +1,8 @@
 <?php
 
-namespace PahappaLimited\EgoSmsSdk\Tests\v1\utils;
+namespace PahappaLimited\CommsSDK\Tests\v1\utils;
 
-use PahappaLimited\EgoSmsSdk\v1\utils\NumberValidator;
+use PahappaLimited\CommsSDK\v1\utils\NumberValidator;
 use PHPUnit\Framework\TestCase;
 
 class NumberValidatorTest extends TestCase

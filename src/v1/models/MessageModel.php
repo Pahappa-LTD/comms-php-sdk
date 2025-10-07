@@ -1,6 +1,6 @@
 <?php
 
-namespace PahappaLimited\EgoSmsSdk\v1\models;
+namespace PahappaLimited\CommsSDK\v1\models;
 
 class MessageModel {
     private string $number;

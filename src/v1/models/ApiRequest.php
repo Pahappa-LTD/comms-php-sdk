@@ -1,6 +1,6 @@
 <?php
 
-namespace PahappaLimited\EgoSmsSdk\v1\models;
+namespace PahappaLimited\CommsSDK\v1\models;
 
 class ApiRequest {
     private string $method;
@@ -33,12 +33,17 @@ class ApiRequest {
     }
 
     public function toArray() {
-        return [
+        $result = [
             'method' => $this->method,
             'userdata' => $this->userdata->toArray(),
-            'msgdata' => array_map(function($message) {
-                return $message->toArray();
-            }, $this->messageData),
         ];
+        
+        if (!empty($this->messageData)) {
+            $result['msgdata'] = array_map(function($message) {
+                return $message->toArray();
+            }, $this->messageData);
+        }
+        
+        return $result;
     }
 }

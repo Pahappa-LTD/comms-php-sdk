@@ -1,26 +1,23 @@
 <?php
 
-namespace PahappaLimited\EgoSmsSdk\v1\utils;
+namespace PahappaLimited\CommsSDK\v1\utils;
 
-use PahappaLimited\EgoSmsSdk\v1\EgoSmsSDK;
-use PahappaLimited\EgoSmsSdk\v1\models\ApiRequest;
-use PahappaLimited\EgoSmsSdk\v1\models\ApiResponse;
-use PahappaLimited\EgoSmsSdk\v1\models\UserData;
+use PahappaLimited\CommsSDK\v1\CommsSDK;
+use PahappaLimited\CommsSDK\v1\models\ApiRequest;
+use PahappaLimited\CommsSDK\v1\models\ApiResponse;
+use PahappaLimited\CommsSDK\v1\models\UserData;
 
 class Validator {
-    public static function validateCredentials(EgoSmsSDK $sdk): bool {
+    public static function validateCredentials(CommsSDK $sdk): bool {
         if ($sdk == null) {
-            throw new \InvalidArgumentException('EgoSmsSDK instance cannot be null');
+            throw new \InvalidArgumentException('CommsSDK instance cannot be null');
         }
-        $isApiKey = true;
-        if ($sdk->getApiKey() == null) {
-            if ($sdk->getPassword() == null || $sdk->getUsername() == null) {
-                throw new \InvalidArgumentException('Either API Key or Username and Password must be provided');
-            } else {
-                $isApiKey = false;
-            }
+        
+        if ($sdk->getApiKey() == null || $sdk->getUserName() == null) {
+            throw new \InvalidArgumentException('Either API Key or Username must be provided');
         }
-        if (!self::isValidCredential($sdk, $isApiKey)) {
+        
+        if (!self::isValidCredential($sdk)) {
             echo "                                                      _                    \n";
             echo "  /\     _|_ |_   _  ._ _|_ o  _  _. _|_ o  _  ._    |_ _. o |  _   _| | | \n";
             echo " /--\ |_| |_ | | (/_ | | |_ | (_ (_|  |_ | (_) | |   | (_| | | (/_ (_| o o \n";
@@ -28,20 +25,21 @@ class Validator {
             echo "\n";
             return false;
         }
-        echo $isApiKey ? "Validated using an api key" : "Validated using basic auth";
-        echo "\n";
-        $sdk->setAuthenticated(true);
+        
+        echo "Credentials validated successfully.\n";
+        echo "Validated using basic auth\n";
+        $sdk->setAuthenticated();
         return true;
     }
 
-    private static function isValidCredential(EgoSmsSDK $sdk, bool $isApiKey) {
+    private static function isValidCredential(CommsSDK $sdk) {
         $apiRequest = new ApiRequest();
         $apiRequest->setMethod('Balance');
-        $apiRequest->setUserdata(new UserData($sdk->getUsername(), $sdk->getPassword()));
+        $apiRequest->setUserdata(new UserData($sdk->getUserName(), $sdk->getApiKey()));
 
         try {
             $client = new \GuzzleHttp\Client();
-            $response = $client->post(EgoSmsSDK::$API_URL, [
+            $response = $client->post(CommsSDK::$API_URL, [
                 'json' => $apiRequest->toArray(),
             ]);
 
