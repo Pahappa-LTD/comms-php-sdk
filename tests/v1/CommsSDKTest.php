@@ -12,8 +12,10 @@ class CommsSDKTest extends TestCase
 
     protected function setUp(): void
     {
-        CommsSDK::useSandBox();
-        $this->sdk = CommsSDK::authenticate('agabu-idaniel', 'dcfa634d7936ec699a3b26f6cd924801b09b285a31949f99');
+        // CommsSDK::useSandBox();
+        $username = 'sandbox';
+        $password = 'sandbox35';
+        $this->sdk = CommsSDK::authenticate($username, $password);
     }
 
     public function testSendSMSToSingleNumber()
