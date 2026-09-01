@@ -40,7 +40,7 @@ class Validator {
         $apiRequest->setWalletType(WalletType::LOCAL);
 
         try {
-            $client = new \GuzzleHttp\Client();
+            $client = CommsSDK::getHttpClient();
             $response = $client->post(CommsSDK::$API_URL, [
                 'json' => $apiRequest->toArray(),
             ]);

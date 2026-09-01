@@ -20,7 +20,23 @@ class CommsSDK
     private $senderId = "EgoSMS";
     private $isAuthenticated = false;
 
+    private static ?\GuzzleHttp\ClientInterface $httpClient = null;
+
     private function __construct() {}
+
+    /**
+     * Overrides the Guzzle client used for all API calls (CommsSDK and Validator).
+     * Intended for tests to inject a mocked client; pass null to restore the default.
+     */
+    public static function setHttpClient(?\GuzzleHttp\ClientInterface $client): void
+    {
+        self::$httpClient = $client;
+    }
+
+    public static function getHttpClient(): \GuzzleHttp\ClientInterface
+    {
+        return self::$httpClient ?? new \GuzzleHttp\Client();
+    }
 
     /**
      * Uses the sandbox api. make an account at "https://comms-test.pahappa.net" to use the sandbox.
@@ -178,7 +194,7 @@ class CommsSDK
         $apiRequest->setMessageData($messageModels);
 
         try {
-            $client = new \GuzzleHttp\Client();
+            $client = self::getHttpClient();
             $response = $client->post(self::$API_URL, [
                 "json" => $apiRequest->toArray(),
             ]);
@@ -226,7 +242,7 @@ class CommsSDK
         $apiRequest->setWalletType($walletType);
 
         try {
-            $client = new \GuzzleHttp\Client();
+            $client = self::getHttpClient();
             $response = $client->post(self::$API_URL, [
                 "json" => $apiRequest->toArray(),
             ]);
