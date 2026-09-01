@@ -87,7 +87,6 @@ echo "Balance: $balance\n";
 $response = $sdk->queryBalance();
 echo "Status: {$response->status}\n";
 echo "Balance: {$response->balance}\n";
-echo "Currency: {$response->currency}\n";
 ```
 
 ### Configuration
@@ -153,8 +152,7 @@ $sdk = $sdk->withSenderId('MyCustomSender');
 
 - `status` - Response status ("OK" or "Failed")
 - `message` - Response message
-- `cost` - Message cost
-- `currency` - Currency code
+- `cost` - Message cost (not always a whole number)
 - `msgFollowUpUniqueCode` - Unique tracking code
 - `balance` - Account balance
 
