@@ -6,6 +6,7 @@ use PahappaLimited\CommsSDK\v1\CommsSDK;
 use PahappaLimited\CommsSDK\v1\models\ApiRequest;
 use PahappaLimited\CommsSDK\v1\models\ApiResponse;
 use PahappaLimited\CommsSDK\v1\models\UserData;
+use PahappaLimited\CommsSDK\v1\models\WalletType;
 
 class Validator {
     public static function validateCredentials(CommsSDK $sdk): bool {
@@ -36,6 +37,7 @@ class Validator {
         $apiRequest = new ApiRequest();
         $apiRequest->setMethod('Balance');
         $apiRequest->setUserdata(new UserData($sdk->getUserName(), $sdk->getApiKey()));
+        $apiRequest->setWalletType(WalletType::LOCAL);
 
         try {
             $client = new \GuzzleHttp\Client();

@@ -7,6 +7,7 @@ use PahappaLimited\CommsSDK\v1\models\ApiResponse;
 use PahappaLimited\CommsSDK\v1\models\MessageModel;
 use PahappaLimited\CommsSDK\v1\models\MessagePriority;
 use PahappaLimited\CommsSDK\v1\models\UserData;
+use PahappaLimited\CommsSDK\v1\models\WalletType;
 use PahappaLimited\CommsSDK\v1\utils\NumberValidator;
 use PahappaLimited\CommsSDK\v1\utils\Validator;
 
@@ -163,6 +164,7 @@ class CommsSDK
         $apiRequest = new ApiRequest();
         $apiRequest->setMethod("SendSms");
         $apiRequest->setUserdata(new UserData($this->userName, $this->apiKey));
+        $apiRequest->setWalletType(WalletType::LOCAL);
 
         $messageModels = [];
         foreach ($validatedNumbers as $number) {
@@ -208,15 +210,20 @@ class CommsSDK
         return false;
     }
 
-    public function queryBalance()
+    public function queryBalance($walletType = null)
     {
         if ($this->sdkNotAuthenticated()) {
             return null;
         }
 
+        if ($walletType === null) {
+            $walletType = WalletType::LOCAL;
+        }
+
         $apiRequest = new ApiRequest();
         $apiRequest->setMethod("Balance");
         $apiRequest->setUserdata(new UserData($this->userName, $this->apiKey));
+        $apiRequest->setWalletType($walletType);
 
         try {
             $client = new \GuzzleHttp\Client();
@@ -235,9 +242,9 @@ class CommsSDK
         }
     }
 
-    public function getBalance()
+    public function getBalance($walletType = null)
     {
-        $response = $this->queryBalance();
+        $response = $this->queryBalance($walletType);
         return $response && $response->getBalance()
             ? floatval($response->getBalance())
             : null;

@@ -7,6 +7,7 @@ class ApiRequest {
     private UserData $userdata;
     /**@var MessageModel[] */
     private array $messageData = [];
+    private ?string $walletType = null;
 
     public function getMethod() {
         return $this->method;
@@ -32,18 +33,30 @@ class ApiRequest {
         $this->messageData = $messageData;
     }
 
+    public function getWalletType() {
+        return $this->walletType;
+    }
+
+    public function setWalletType($walletType) {
+        $this->walletType = $walletType;
+    }
+
     public function toArray() {
         $result = [
             'method' => $this->method,
             'userdata' => $this->userdata->toArray(),
         ];
-        
+
         if (!empty($this->messageData)) {
             $result['msgdata'] = array_map(function($message) {
                 return $message->toArray();
             }, $this->messageData);
         }
-        
+
+        if ($this->walletType !== null) {
+            $result['walletType'] = $this->walletType;
+        }
+
         return $result;
     }
 }
