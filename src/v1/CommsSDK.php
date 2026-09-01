@@ -83,7 +83,7 @@ class CommsSDK
         $numbers,
         $message,
         $senderId = null,
-        $priority = MessagePriority::HIGHEST,
+        $priority = MessagePriority::HIGH,
     ) {
 
         $apiResponse = $this->querySendSMS(
@@ -114,12 +114,14 @@ class CommsSDK
         }
     }
 
-    public function querySendSMS($numbers, $message, $senderId, $priority)
+    public function querySendSMS($numbers, $message, $senderId = null, $priority = MessagePriority::HIGH)
     {
         if ($this->sdkNotAuthenticated()) {
             return null;
         }
-        
+
+        $senderId = $senderId ?: $this->senderId;
+
         if (!is_array($numbers)) {
             $numbers = trim($numbers);
             switch ($numbers) {

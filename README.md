@@ -2,7 +2,7 @@
 
 A PHP implementation of the CommsSDK for sending SMS and managing communications, following the same patterns as the Python, Ruby, and other language reference implementations.
 
-**Version:** 1.0.1
+**Version:** 1.1.0
 
 ---
 
@@ -30,7 +30,7 @@ Or add to your `composer.json`:
 ```json
 {
   "require": {
-    "pahappa/comms-sdk": "1.0.1"
+    "pahappa/comms-sdk": "1.1.0"
   }
 }
 ```
@@ -122,10 +122,10 @@ $sdk = $sdk->withSenderId('MyCustomSender');
 
 - `withSenderId($senderId): CommsSDK`
   - Set sender ID, returns self for chaining.
-- `sendSMS($numbers, $message, $senderId = null, $priority = MessagePriority::HIGHEST): bool`
+- `sendSMS($numbers, $message, $senderId = null, $priority = MessagePriority::HIGH): bool`
   - Send SMS, returns boolean.
-- `querySendSMS($numbers, $message, $senderId, $priority): ?ApiResponse`
-  - Send SMS, returns full ApiResponse.
+- `querySendSMS($numbers, $message, $senderId = null, $priority = MessagePriority::HIGH): ?ApiResponse`
+  - Same as `sendSMS`, but returns the full ApiResponse.
 - `getBalance(): ?float`
   - Get account balance as float.
 - `queryBalance(): ?ApiResponse`
