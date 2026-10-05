@@ -10,14 +10,14 @@ class NumberValidator {
      */
     public static function validateNumbers(array $numbers) {
         if (empty($numbers)) {
-            error_log('Number list cannot be null or empty');
+            LoggerHolder::get()->warning('Number list cannot be null or empty');
             return [];
         }
 
         $_cleansed = [];
         foreach ($numbers as $number) {
             if (empty(trim($number))) {
-                error_log(sprintf('Number (%s) cannot be null or empty!', $number));
+                LoggerHolder::get()->warning('Number ({number}) cannot be null or empty!', ['number' => $number]);
                 continue;
             }
             $number = preg_replace('/-|\\s/', '', trim($number));
@@ -29,7 +29,7 @@ class NumberValidator {
                 }
                 $_cleansed[] = $number;
             } else {
-                error_log(sprintf('Number (%s) is not valid!', $number));
+                LoggerHolder::get()->error('Number ({number}) is not valid!', ['number' => $number]);
             }
         }
         return array_unique($_cleansed);

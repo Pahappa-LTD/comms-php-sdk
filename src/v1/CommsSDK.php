@@ -2,23 +2,47 @@
 
 namespace PahappaLimited\CommsSDK\v1;
 
+use PahappaLimited\CommsSDK\v1\exceptions\CommsApiException;
+use PahappaLimited\CommsSDK\v1\exceptions\CommsValidationException;
 use PahappaLimited\CommsSDK\v1\models\ApiRequest;
 use PahappaLimited\CommsSDK\v1\models\ApiResponse;
 use PahappaLimited\CommsSDK\v1\models\MessageModel;
 use PahappaLimited\CommsSDK\v1\models\MessagePriority;
 use PahappaLimited\CommsSDK\v1\models\UserData;
 use PahappaLimited\CommsSDK\v1\models\WalletType;
+use PahappaLimited\CommsSDK\v1\utils\LoggerHolder;
+use PahappaLimited\CommsSDK\v1\utils\NetworkHelper;
 use PahappaLimited\CommsSDK\v1\utils\NumberValidator;
 use PahappaLimited\CommsSDK\v1\utils\Validator;
+use Psr\Log\LoggerInterface;
 
 class CommsSDK
 {
-    public static $API_URL = "https://comms.egosms.co/api/v1/json/";
+    public const LIVE_API_URL = "https://comms.egosms.co/api/v1/json";
+    public const SANDBOX_API_URL = "https://comms-test.pahappa.net/api/v1/json";
+
+    /**
+     * Sets the PSR-3 logger the SDK writes to. The SDK is silent until a logger is set; pass null to silence it again.
+     */
+    public static function setLogger(?LoggerInterface $logger): void
+    {
+        LoggerHolder::set($logger);
+    }
+
+    /**
+     * Global API endpoint, followed by instances created through {@link CommsSDK::authenticate}.
+     *
+     * @deprecated Each instance now carries its own endpoint. Use {@link CommsSDK::live} or
+     *             {@link CommsSDK::sandbox} instead.
+     */
+    public static $API_URL = self::LIVE_API_URL;
 
     private $apiKey;
     private $userName;
     private $senderId = "EgoSMS";
     private $isAuthenticated = false;
+    /** This instance's own endpoint, or null when it follows {@link CommsSDK::$API_URL}. */
+    private ?string $apiUrl = null;
 
     private static ?\GuzzleHttp\ClientInterface $httpClient = null;
 
@@ -39,30 +63,69 @@ class CommsSDK
     }
 
     /**
-     * Uses the sandbox api. make an account at "https://comms-test.pahappa.net" to use the sandbox.
-     * For live, check out {@link CommsSDK::useLiveServer}
+     * Creates an instance bound to the live server and verifies the credentials.
+     * Check {@link CommsSDK::isAuthenticated} for the credential result.
+     *
+     * @throws CommsValidationException if the user name or API key is empty.
      */
-    public static function useSandBox()
+    public static function live($userName, $apiKey): CommsSDK
     {
-        self::$API_URL = 'https://comms-test.pahappa.net/api/v1/json';
+        return self::create($userName, $apiKey, self::LIVE_API_URL);
     }
 
     /**
-     * Uses the live api (default). make an account at "https://comms.egosms.co" to use the live api.
-     * For testing, check out {@link CommsSDK::useSandBox}
+     * Creates an instance bound to the sandbox server (for testing) and verifies the credentials.
+     * Make an account at "https://comms-test.pahappa.net" to use the sandbox.
+     * Check {@link CommsSDK::isAuthenticated} for the credential result.
+     *
+     * @throws CommsValidationException if the user name or API key is empty.
      */
-    public static function useLiveServer()
+    public static function sandbox($userName, $apiKey): CommsSDK
     {
-        self::$API_URL = "https://comms.egosms.co/api/v1/json";
+        return self::create($userName, $apiKey, self::SANDBOX_API_URL);
     }
 
-    public static function authenticate($userName, $apiKey): CommsSDK
+    private static function create($userName, $apiKey, ?string $apiUrl): CommsSDK
     {
         $sdk = new CommsSDK();
         $sdk->userName = $userName;
         $sdk->apiKey = $apiKey;
-        Validator::validateCredentials($sdk);
+        $sdk->apiUrl = $apiUrl;
+        $sdk->isAuthenticated = Validator::validateCredentials($sdk);
         return $sdk;
+    }
+
+    /**
+     * Switches the global endpoint to the sandbox. This also affects existing instances created
+     * through {@link CommsSDK::authenticate}.
+     *
+     * @deprecated Use {@link CommsSDK::sandbox}, which binds one instance without changing global state.
+     */
+    public static function useSandBox()
+    {
+        self::$API_URL = self::SANDBOX_API_URL;
+    }
+
+    /**
+     * Switches the global endpoint to the live server. This also affects existing instances created
+     * through {@link CommsSDK::authenticate}.
+     *
+     * @deprecated Use {@link CommsSDK::live}, which binds one instance without changing global state.
+     */
+    public static function useLiveServer()
+    {
+        self::$API_URL = self::LIVE_API_URL;
+    }
+
+    /**
+     * Authenticates and creates a new instance that follows the global {@link CommsSDK::$API_URL}.
+     *
+     * @deprecated Use {@link CommsSDK::live} or {@link CommsSDK::sandbox}, which bind the instance to one endpoint.
+     * @throws CommsValidationException if the user name or API key is empty.
+     */
+    public static function authenticate($userName, $apiKey): CommsSDK
+    {
+        return self::create($userName, $apiKey, null);
     }
 
     public function setAuthenticated()
@@ -91,11 +154,26 @@ class CommsSDK
         return $this->senderId;
     }
 
+    /**
+     * @return string The endpoint this instance talks to: its own, or the global {@link CommsSDK::$API_URL} if it follows it.
+     */
+    public function getApiUrl(): string
+    {
+        return $this->apiUrl ?? self::$API_URL;
+    }
+
     public function isAuthenticated()
     {
         return $this->isAuthenticated;
     }
 
+    /**
+     * Sends an SMS to one or more numbers.
+     *
+     * @return bool true if sent successfully, false otherwise.
+     * @throws CommsValidationException if the numbers list or the message is empty, or the message is a single character.
+     * @throws CommsApiException if the server replies with a status the SDK does not recognise.
+     */
     public function sendSMS(
         $numbers,
         $message,
@@ -111,26 +189,31 @@ class CommsSDK
         );
 
         if ($apiResponse === null) {
-            echo "Failed to get a response from the server.\n";
+            LoggerHolder::get()->error("Failed to get a response from the server.");
             return false;
         }
 
         if ($apiResponse->getStatus() === "OK") {
-            echo "SMS sent successfully.\n";
-            echo "MessageFollowUpUniqueCode: " .
-                $apiResponse->getMsgFollowUpUniqueCode() .
-                "\n";
+            LoggerHolder::get()->info("SMS sent successfully.");
+            LoggerHolder::get()->info("MessageFollowUpUniqueCode: {code}", [
+                "code" => $apiResponse->getMsgFollowUpUniqueCode(),
+            ]);
             return true;
         } elseif ($apiResponse->getStatus() === "Failed") {
-            echo "Failed: " . $apiResponse->getMessage() . "\n";
+            LoggerHolder::get()->error("Failed: {message}", ["message" => $apiResponse->getMessage()]);
             return false;
         } else {
-            throw new \RuntimeException(
+            throw new CommsApiException(
                 "Unexpected response status: " . $apiResponse->getStatus(),
             );
         }
     }
 
+    /**
+     * Same as {@link CommsSDK::sendSMS} but returns the full ApiResponse, or null on error.
+     *
+     * @throws CommsValidationException if the numbers list or the message is empty, or the message is a single character.
+     */
     public function querySendSMS($numbers, $message, $senderId = null, $priority = MessagePriority::HIGH)
     {
         if ($this->sdkNotAuthenticated()) {
@@ -149,16 +232,16 @@ class CommsSDK
                     $numbers = [$numbers];
             }
         }
-        
+
 
         if (empty($numbers)) {
-            throw new \InvalidArgumentException("Numbers list cannot be empty");
+            throw new CommsValidationException("Numbers list cannot be empty");
         }
         if (empty($message)) {
-            throw new \InvalidArgumentException("Message cannot be empty");
+            throw new CommsValidationException("Message cannot be empty");
         }
         if (strlen($message) == 1) {
-            throw new \InvalidArgumentException(
+            throw new CommsValidationException(
                 "Message cannot be a single character",
             );
         }
@@ -167,20 +250,15 @@ class CommsSDK
             $senderId = $this->senderId;
         }
         if (strlen($senderId) > 11) {
-            echo "Warning: Sender ID length exceeds 11 characters. Some networks may truncate or reject messages.\n";
+            LoggerHolder::get()->warning("Warning: Sender ID length exceeds 11 characters. Some networks may truncate or reject messages.");
         }
 
         $validatedNumbers = NumberValidator::validateNumbers($numbers);
 
         if (empty($validatedNumbers)) {
-            error_log("No valid phone numbers provided. Please check inputs.");
+            LoggerHolder::get()->error("No valid phone numbers provided. Please check inputs.");
             return null;
         }
-
-        $apiRequest = new ApiRequest();
-        $apiRequest->setMethod("SendSms");
-        $apiRequest->setUserdata(new UserData($this->userName, $this->apiKey));
-        $apiRequest->setWalletType(WalletType::LOCAL);
 
         $messageModels = [];
         foreach ($validatedNumbers as $number) {
@@ -191,23 +269,32 @@ class CommsSDK
             $messageModel->setPriority($priority);
             $messageModels[] = $messageModel;
         }
+
+        return $this->sendCustomSMS($messageModels);
+    }
+
+    /**
+     * Sends a custom-built list of MessageModel objects. Returns null on error.
+     *
+     * @param MessageModel[] $messageModels
+     */
+    public function sendCustomSMS(array $messageModels)
+    {
+        if ($this->sdkNotAuthenticated()) {
+            return null;
+        }
+
+        $apiRequest = new ApiRequest();
+        $apiRequest->setMethod("SendSms");
+        $apiRequest->setUserdata(new UserData($this->userName, $this->apiKey));
+        $apiRequest->setWalletType(WalletType::LOCAL);
         $apiRequest->setMessageData($messageModels);
 
         try {
-            $client = self::getHttpClient();
-            $response = $client->post(self::$API_URL, [
-                "json" => $apiRequest->toArray(),
-            ]);
-
-            $responseData = json_decode($response->getBody(), true);
-            return ApiResponse::fromArray($responseData);
+            return ApiResponse::fromArray(NetworkHelper::post($apiRequest, $this->getApiUrl()));
         } catch (\Exception $e) {
-            error_log("Failed to send SMS: " . $e->getMessage());
-            try {
-                error_log("Request: " . json_encode($apiRequest->toArray()));
-            } catch (\Exception $ignored) {
-                // Ignore serialization errors
-            }
+            LoggerHolder::get()->error("Failed to send SMS: {message}", ["message" => $e->getMessage(), "exception" => $e]);
+            LoggerHolder::get()->debug("Request: {request}", ["request" => json_encode($apiRequest->toArray())]);
             return null;
         }
     }
@@ -215,17 +302,19 @@ class CommsSDK
     private function sdkNotAuthenticated(): bool
     {
         if (!$this->isAuthenticated) {
-            error_log(
-                "SDK is not authenticated. Please authenticate before performing actions.",
-            );
-            error_log(
-                "Attempting to re-authenticate with provided credentials...",
-            );
+            LoggerHolder::get()->warning("SDK is not authenticated. Please authenticate before performing actions.");
+            LoggerHolder::get()->warning("Attempting to re-authenticate with provided credentials...");
             return !Validator::validateCredentials($this);
         }
         return false;
     }
 
+    /**
+     * Same as {@link CommsSDK::getBalance} but returns the full ApiResponse, or null if the
+     * credentials could not be verified.
+     *
+     * @throws CommsApiException if the balance request fails.
+     */
     public function queryBalance($walletType = null)
     {
         if ($this->sdkNotAuthenticated()) {
@@ -242,15 +331,9 @@ class CommsSDK
         $apiRequest->setWalletType($walletType);
 
         try {
-            $client = self::getHttpClient();
-            $response = $client->post(self::$API_URL, [
-                "json" => $apiRequest->toArray(),
-            ]);
-
-            $responseData = json_decode($response->getBody(), true);
-            return ApiResponse::fromArray($responseData);
+            return ApiResponse::fromArray(NetworkHelper::post($apiRequest, $this->getApiUrl()));
         } catch (\Exception $e) {
-            throw new \RuntimeException(
+            throw new CommsApiException(
                 "Failed to get balance: " . $e->getMessage(),
                 0,
                 $e,
@@ -258,6 +341,11 @@ class CommsSDK
         }
     }
 
+    /**
+     * Gets the SMS account balance for the given wallet, or null if the credentials could not be verified.
+     *
+     * @throws CommsApiException if the balance request fails.
+     */
     public function getBalance($walletType = null)
     {
         $response = $this->queryBalance($walletType);
@@ -268,6 +356,6 @@ class CommsSDK
 
     public function __toString()
     {
-        return "SDK({$this->userName} => {$this->apiKey})";
+        return "SDK({$this->userName}, {$this->senderId}, {$this->getApiUrl()})";
     }
 }

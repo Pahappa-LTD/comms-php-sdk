@@ -3,7 +3,8 @@
     "description": "This is the PHP version of the Comms SDK - which will help PHP software to communicate with the Communications platform bulk messaging servce by Pahappa Limited",
     "type": "library",
     "require": {
-        "guzzlehttp/guzzle": "^7.9"
+        "guzzlehttp/guzzle": "^7.9",
+        "psr/log": "^1.1 || ^2.0 || ^3.0"
     },
     "license": "MIT",
     "autoload": {
